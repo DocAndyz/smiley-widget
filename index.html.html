@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smiley Rating</title>
+<style>
+  body {
+    font-family: system-ui, Segoe UI, Roboto, Arial;
+    margin: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .variable {
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    border: 0;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    transition: transform .08s ease;
+  }
+  .btn:active { transform: translateY(2px) scale(.99); }
+
+  /* gradient colours for each rating */
+  .g1 { background: linear-gradient(135deg,#ff9a9e,#fecfef); }
+  .g2 { background: linear-gradient(135deg,#ffd37a,#ffb199); }
+  .g3 { background: linear-gradient(135deg,#f6f7b2,#d4f0a9); }
+  .g4 { background: linear-gradient(135deg,#a8e6cf,#56ccf2); }
+  .g5 { background: linear-gradient(135deg,#9be7ff,#6f9ef8); }
+
+  input[type=text], select {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    margin-top: 4px;
+  }
+  #msg {
+    margin-top: 12px;
+    color: #333;
+    text-align: center;
+  }
+  footer {
+    margin-top: 40px;
+    font-size: 12px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+<h2>Secutel Quality Assuarance Inspection</h2>
+
+<!-- Variable 1 -->
+<label class="variable">
+  Who are we visiting and what is their mood?
+  <input id="variable1" type="text" placeholder="e.g. John Doe" />
+</label>
+<div class="row" id="row1">
+  <button class="btn g1" data-value="1">😢</button>
+  <button class="btn g2" data-value="2">🙁</button>
+  <button class="btn g3" data-value="3">😐</button>
+  <button class="btn g4" data-value="4">🙂</button>
+  <button class="btn g5" data-value="5">😀</button>
+</div>
+
+<!-- Variable 2 -->
+<label class="variable">
+  How is the installation or testing progressing?
+  <select id="variable2">
+    <option>Poor</option>
+    <option>Fair</option>
+    <option>Good</option>
+  </select>
+</label>
+<div class="row" id="row2">
+  <button class="btn g1" data-value="1">😢</button>
+  <button class="btn g2" data-value="2">🙁</button>
+  <button class="btn g3" data-value="3">😐</button>
+  <button class="btn g4" data-value="4">🙂</button>
+  <button class="btn g5" data-value="5">😀</button>
+</div>
+
+<!-- Variable 3 -->
+<label class="variable">
+  Are they experiencing issues with the current work?
+  <select id="variable3">
+    <option>No</option>
+    <option>Yes</option>
+  </select>
+</label>
+<div class="row" id="row3">
+  <button class="btn g1" data-value="1">😢</button>
+  <button class="btn g2" data-value="2">🙁</button>
+  <button class="btn g3" data-value="3">😐</button>
+  <button class="btn g4" data-value="4">🙂</button>
+  <button class="btn g5" data-value="5">😀</button>
+</div>
+
+<!-- Variable 4 -->
+<label class="variable">
+  If there is a client on site, select an icon for installation and staff professionalism:
+</label>
+<div class="row" id="row4">
+  <button class="btn g1" data-value="1">😢</button>
+  <button class="btn g2" data-value="2">🙁</button>
+  <button class="btn g3" data-value="3">😐</button>
+  <button class="btn g4" data-value="4">🙂</button>
+  <button class="btn g5" data-value="5">😀</button>
+</div>
+
+<div id="msg"></div>
+
+<footer>Powered by TechLighthouse</footer>
+
+<script>
+const rows = ['row1','row2','row3','row4'];
+
+rows.forEach(rowId => {
+  const row = document.getElementById(rowId);
+  const buttons = row.querySelectorAll('.btn');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rating = btn.dataset.value;
+      let variableValue = '';
+      if(rowId==='row1') variableValue = document.getElementById('variable1').value || 'Unknown';
+      if(rowId==='row2') variableValue = document.getElementById('variable2').value;
+      if(rowId==='row3') variableValue = document.getElementById('variable3').value;
+      if(rowId==='row4') variableValue = 'Client ranking';
+      sendRating(variableValue, Number(rating));
+    });
+  });
+});
+
+async function sendRating(variable, rating){
+  const msg = document.getElementById('msg');
+  msg.textContent = 'Sending…';
+  try {
+    const resp = await fetch('/.netlify/functions/submit', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ variable, rating, notes: null })
+    });
+    const json = await resp.json();
+    if(resp.ok){
+      msg.textContent = 'Thanks! Rating saved.';
+    } else {
+      msg.textContent = 'Error saving rating: ' + (json.error || resp.status);
+    }
+  } catch(e){
+    msg.textContent = 'Netw
